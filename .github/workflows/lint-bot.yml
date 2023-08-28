@@ -1,0 +1,71 @@
+name: lint-bot
+
+on: 
+  workflow_call:
+    secrets:
+      MLKIT_BRANCH_TOKEN:
+        required: true
+        description: "Token to access mlkit-branch account"
+    inputs:
+      head-ref:
+        required: false
+        description: "The branch to lint"
+        type: string
+      head-repo:
+        required: false
+        description: "The repository to lint"
+        type: string
+        default: ${{ github.repository }}
+      only-changed-files:
+        required: false
+        description: "Only lint changed files"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  format-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️ ${{ github.event.repository.name }}
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.MLKIT_BRANCH_TOKEN }}
+          repository: ${{ inputs.head-repo }}
+          ref: ${{ inputs.head-ref }}
+
+      - name: Get changed files
+        if: inputs.only-changed-files
+        id: changed-files
+        uses: KareemMAX/gh-action-get-changed-files@5a5ee034eff88bee239d4f49cd041fed0bec7480
+        with:
+          token: ${{ secrets.MLKIT_BRANCH_TOKEN }}
+
+      - name: Setup Python 🐍
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+
+      - name: Run pre-commit 🚀
+        continue-on-error: true
+        uses: pre-commit/action@v3.0.0
+        with:
+          extra_args: ${{ inputs.only-changed-files && format('--files {0}', join(fromJSON(steps.changed-files.outputs.all), ' ')) || '--all-files' }}
+
+      - name: Check if there are changes 📝
+        id: check
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit changes 📝
+        if: steps.check.outputs.changes == 'true'
+        run: |
+          git config --local user.email "admin@khulnasoft.com"
+          git config --local user.name "mlkit-branch"
+          git add .
+          git commit -m "🤖 Lint code"
+          git push
