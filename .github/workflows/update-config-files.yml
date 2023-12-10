@@ -4,7 +4,7 @@
 name: Update configuration files
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       base-pr-branch:
         description: "Optional input to specify the branch where PR changes should be integrated."
