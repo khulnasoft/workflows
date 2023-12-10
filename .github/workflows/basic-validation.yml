@@ -8,7 +8,7 @@
 name: Basic validation
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       operating-systems:
         description: "Optional input to set a list of operating systems which the workflow uses. Defaults to ['ubuntu-latest', 'windows-latest', 'macos-latest'] if not set"
