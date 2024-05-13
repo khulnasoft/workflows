@@ -1,5 +1,5 @@
-# This workflow helps to keep configuration files for such tools as ESLint and Prettier in your repo up to date with the reference configuration files from the actions/reusable-workflows repository.
-# Once the reference configuration files are changed in the https://github.com/actions/reusable-workflows/tree/main/reusable-configurations, the workflow will automatically create PR with updates in your repo.
+# This workflow helps to keep configuration files for such tools as ESLint and Prettier in your repo up to date with the reference configuration files from the khulnasoft/workflows repository.
+# Once the reference configuration files are changed in the https://github.com/khulnasoft/workflows/tree/main/reusable-configurations, the workflow will automatically create PR with updates in your repo.
 
 name: Update configuration files
 
@@ -32,15 +32,15 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: Checkout ${{github.repository}} repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: "${{inputs.base-pr-branch}}"
           path: "target"
 
-      - name: Checkout actions/reusable-workflows repository
-        uses: actions/checkout@v3
+      - name: Checkout khulnasoft/workflows repository
+        uses: actions/checkout@v4
         with:
-          repository: "actions/reusable-workflows"
+          repository: "khulnasoft/workflows"
           ref: "main"
           path: "source"
 
@@ -67,7 +67,7 @@ jobs:
             if [ "$(find ${{github.workspace}}/source/reusable-configurations -name "$filePattern")" ]; then
               rsync -a --include="$filePattern" --exclude="*" ${{github.workspace}}/source/reusable-configurations/ ${{github.workspace}}/target/${{inputs.target-folder}}
             else
-              echo "::error::Files corresponding to the specified file pattern: '$filePattern' do not exist in the reference https://github.com/actions/reusable-workflows/tree/main/reusable-configurations folder."
+              echo "::error::Files corresponding to the specified file pattern: '$filePattern' do not exist in the reference https://github.com/khulnasoft/workflows/tree/main/reusable-configurations folder."
               exit 1
             fi
           done
@@ -78,15 +78,15 @@ jobs:
             echo "Configuration files update is successful."
             echo "STATUS=true" >> $GITHUB_OUTPUT
           else
-            echo "::notice::Referenced configuration files are up to date with the files from https://github.com/actions/reusable-workflows/tree/main/reusable-configurations folder."
+            echo "::notice::Referenced configuration files are up to date with the files from https://github.com/khulnasoft/workflows/tree/main/reusable-configurations folder."
             echo "STATUS=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Install Node.js
         if: ${{ steps.successful-update.outputs.STATUS == 'true' }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
 
       - name: Install dependencies
         if: ${{ steps.successful-update.outputs.STATUS == 'true' }}
@@ -135,9 +135,9 @@ jobs:
         if: ${{ steps.successful-update.outputs.STATUS == 'true' }}
         run: |
           if [ "${{ steps.automatic-apply.outcome }}" == "success" ]; then
-            bodyText=$'In the scope of this PR, configuration files should be updated to match examples stored in the '"[reusable-workflows](https://github.com/actions/reusable-workflows/tree/main/reusable-configurations)"' repository. The updated configuration files are applied to the repository files automatically.'
+            bodyText=$'In the scope of this PR, configuration files should be updated to match examples stored in the '"[reusable-workflows](https://github.com/khulnasoft/workflows/tree/main/reusable-configurations)"' repository. The updated configuration files are applied to the repository files automatically.'
           else
-            bodyText=$'In the scope of this PR, configuration files should be updated to match examples stored in the '"[reusable-workflows](https://github.com/actions/reusable-workflows/tree/main/reusable-configurations)"' repository.\n>**Warning**\n> The updated configuration files can not be applied to the repository automatically. Please apply the updated configuration files to the repository manually.'
+            bodyText=$'In the scope of this PR, configuration files should be updated to match examples stored in the '"[reusable-workflows](https://github.com/khulnasoft/workflows/tree/main/reusable-configurations)"' repository.\n>**Warning**\n> The updated configuration files can not be applied to the repository automatically. Please apply the updated configuration files to the repository manually.'
           fi
 
           if [ "${{ steps.pr-existence.outputs.STATUS }}" == "true" ]; then
